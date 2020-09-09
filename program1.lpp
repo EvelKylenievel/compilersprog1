@@ -1,0 +1,196 @@
+/*************************************
+ * program1.lpp
+ * COSC4785/5785
+ * $Author: kwessel $
+ * $Date: 2020-09-09 $
+ * $Id: program1.lpp, kwessel Exp kwessel $
+ *
+ * FLEX INPUT FILE, This is the input to flex that generates the scanner.
+ * It returns integers.
+ * In this simple version it just returns 1 until it is done. 
+ *
+ * $Log: program1.lpp,v $
+ * Revision 1.4  2020-09-09 kwessel
+ *
+ *
+ *
+ ***********************************/
+%{
+using std::string;
+using std::cerr;
+
+#include"program1.hpp"
+
+/*
+ * the yynowrap is how the scanner handles end of file, that it it just
+ * quits. 
+ */
+%}
+%option outfile="program1_lex.cpp"
+%option noyywrap
+%option yylineno
+
+  /*
+   * DO NOT define 945  different regular expressions. You do NOT need most of
+   * them. Notice that I put them in as simple rules. 
+   */
+
+%%
+quit            {
+                  return 0;
+                }
+Quit            {
+                  return 0;
+                }
+QUIT            {
+                  return 0;
+                }
+
+  /*
+   * compare op: == < > >= <= !=
+   */
+[<>]|[<>](=)?|!=|==   {
+                        value = "";
+                        ofType = 1;
+                        len = yyleng;
+                        line = yylineno;
+                        column += yyleng;
+                        value.append(yytext);
+                        return 1;
+                      }
+  /*
+   * logical op: || &&
+   */
+\|{2}|&{2}  {
+                  value="";
+                  ofType = 2;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+  /*
+   * math op: + - * /
+   */
+[\-\+\*\/]     {
+                  value="";
+                  ofType = 3;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+  /*
+  * enclosing op: { } [ ] ( )
+  */
+[{}\[\]()]   {
+                  value = "";
+                  ofType = 4;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                } 
+  /*
+   * punctuation: . , ;
+   */
+[.,;]         {
+                  value = "";
+                  ofType = 5;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+  /*
+   * keyword: this if else while
+   */
+this|if|else|while    {
+                        value = "";
+                        ofType = 6;
+                        len = yyleng;
+                        line = yylineno;
+                        column += yyleng;
+                        value.append(yytext);
+                        return 1;
+                      }
+  /*
+   * identifier
+   */
+([_a-zA-Z])[_a-zA-Z0-9]+       {
+                  value="";
+                  ofType = 7;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+  /*
+   * Float 
+   */
+((0|[1-9][0-9]*)(\.[0-9]+(([eE])?([-+])?[0-9]+)?))         {
+                  value = "";
+                  ofType = 9;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+((0|[1-9][0-9]*)([eE]([-+])?[0-9]+)) {
+                  value = "";
+                  ofType = 9;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+  /* 
+   * Numbers. 
+   */
+[0-9]+          {
+                  value="";
+                  ofType = 8;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng; 
+                  value.append(yytext);
+                  return 1;
+                }
+  /*
+   * Whitespace: tab, space, newline.
+   */
+\t              { 
+                  column += 8 - (column%8);
+                }
+
+(\r\n|\r|\n)              {
+                  value=" ";
+                  ofType=11;
+                  len = yyleng;
+                  column += yyleng;
+                  return 1;
+                }
+" "+            { 
+                  column +=yyleng;
+                }
+  /*
+   * Matches anything not matched. Must be last.
+   */
+.               {
+                  value="";
+                  ofType = 10;
+                  len = yyleng;
+                  line = yylineno;
+                  column += yyleng;
+                  value.append(yytext);
+                  return 1;
+                }
+%%
+

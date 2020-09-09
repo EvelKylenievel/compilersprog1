@@ -1,0 +1,6 @@
+int a = 1;
+int b =34;
+string c = 'fuck';
+if (_thisid == this) {return "error";}
+
+completed
