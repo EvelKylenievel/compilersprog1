@@ -1,1 +1,1 @@
-yeet amd skeet
+homework :/
